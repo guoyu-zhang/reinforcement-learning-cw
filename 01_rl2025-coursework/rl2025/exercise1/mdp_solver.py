@@ -81,8 +81,7 @@ class ValueIteration(MDPSolver):
         """
         
         # TODO remove
-        print("V---")
-        print(V)
+ 
         print("R---")
         print(self.mdp.R)
         print("P---")
@@ -120,6 +119,7 @@ class ValueIteration(MDPSolver):
 
                 delta = max(delta, abs(old_value - V[state_index]))
                     
+        print(V)
         return V
 
     def _calc_policy(self, V: np.ndarray) -> np.ndarray:
@@ -140,8 +140,21 @@ class ValueIteration(MDPSolver):
             policy[S, OTHER_ACTIONS] = 0
         """
         policy = np.zeros([self.state_dim, self.action_dim])
-        ### PUT YOUR CODE HERE ###
-        raise NotImplementedError("Needed for Q1")
+        
+        for state, state_index in self.mdp._state_dict.items():  
+            outgoing_transitions = [t for t in self.mdp.transitions if t.state == state]
+            
+            action_values = []
+            for action in self.mdp._action_dict.keys():
+                action_components = []
+                for t in outgoing_transitions:
+                    if t.action == action:
+                        action_components.append(t.prob * (t.reward + self.gamma * V[self.mdp._state_dict[t.next_state]]))
+                action_values.append((sum(action_components), action))
+            best_action = sorted(action_values, reverse=True)[0][1]
+            policy[state_index, self.mdp._action_dict[best_action]] = 1
+        
+        print(policy)
         return policy
 
     def solve(self, theta: float = 1e-6) -> Tuple[np.ndarray, np.ndarray]:
